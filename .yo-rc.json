@@ -1,0 +1,19 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "baseName": "myApp",
+    "buildTool": "maven",
+    "clientFramework": "angular",
+    "creationTimestamp": 1737138623505,
+    "databaseType": "sql",
+    "devDatabaseType": "h2Disk",
+    "devServerPort": 4200,
+    "entities": ["Submission", "Position", "Grade", "Committee"],
+    "jhipsterVersion": "8.7.3",
+    "jwtSecretKey": "NTE2NDEzNzEyNzA2YzVjZDlkMTBkZDA5NjI1MzhkMGNhMDJkZDZhODdhMjIyNmVhODQxZTI2NGZlNWE3ZDQzYjYxMGNmYTRiZjg4MjU1MzAxYzVlM2U1NDg1ZDQzOGEwN2E0ZmY1OTkwMTcyZDFmZmI0MzU3YjA3MjUzY2EyZmI=",
+    "languages": ["en"],
+    "lastLiquibaseTimestamp": 1737138688000,
+    "nativeLanguage": "en",
+    "prodDatabaseType": "postgresql"
+  }
+}

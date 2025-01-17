@@ -1,0 +1,39 @@
+{
+  "myApp": {
+    "submission": {
+      "home": {
+        "title": "Submissions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Submission",
+        "createOrEditLabel": "Create or edit a Submission",
+        "notFound": "No Submissions found"
+      },
+      "created": "A new Submission is created with identifier {{ param }}",
+      "updated": "A Submission is updated with identifier {{ param }}",
+      "deleted": "A Submission is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Submission {{ id }}?"
+      },
+      "detail": {
+        "title": "Submission"
+      },
+      "id": "ID",
+      "afm": "Afm",
+      "adt": "Adt",
+      "lastName": "Last Name",
+      "firstName": "First Name",
+      "fatherName": "Father Name",
+      "acquisitionDate": "Acquisition Date",
+      "lossDate": "Loss Date",
+      "organizationUnit": "Organization Unit",
+      "newOrganizationUnit": "New Organization Unit",
+      "protocolNumber": "Protocol Number",
+      "decisionDate": "Decision Date",
+      "previousSubmission": "Previous Submission",
+      "position": "Position",
+      "grade": "Grade",
+      "committeeName": "Committee Name",
+      "user": "User"
+    }
+  }
+}

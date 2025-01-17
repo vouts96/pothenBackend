@@ -1,0 +1,52 @@
+application {
+  config {
+    baseName myApp,
+    applicationType monolith,
+    databaseType sql,
+    devDatabaseType h2Disk,
+    prodDatabaseType postgresql,
+    buildTool maven,
+    clientFramework angular
+  }
+  entities * // Include all entities in the application
+}
+
+entity Submission {
+  afm String required pattern(/^[0-9]{9}$/) // Α.Φ.Μ.: 9-digit number
+  adt String required // Α.Δ.Τ - Α.Γ.Μ
+  lastName String required // Επώνυμο
+  firstName String required // Όνομα
+  fatherName String required // Πατρώνυμο
+  acquisitionDate LocalDate required // Ημ/νία Απόκτησης Ιδιότητας
+  lossDate LocalDate // Ημ/νία Απώλειας Ιδιότητας (optional)
+  organizationUnit String required // Οργανική Μονάδα
+  newOrganizationUnit String // Νέα Οργανική Μονάδα (optional)
+  protocolNumber String required // Αριθμός πρωτοκόλλου απόφασης
+  decisionDate LocalDate required // Ημ/νία Έκδοσης Απόφασης
+  previousSubmission Boolean required // Έχετε υποβάλει το προηγούμενο έτος (Yes/No)
+}
+
+entity Position {
+  name String required
+}
+
+entity Grade {
+  name String required
+}
+
+entity Committee {
+  name String required
+}
+
+relationship ManyToOne {
+  Submission{position(name)} to Position
+  Submission{grade(name)} to Grade
+  Submission{committeeName(name)} to Committee
+  Submission{user(login)} to User with builtInEntity
+}
+
+dto * with mapstruct
+
+paginate Submission with infinite-scroll
+
+service Submission with serviceClass

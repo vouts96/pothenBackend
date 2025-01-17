@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    <!--
+        Added the constraints for entity Submission.
+    -->
+    <changeSet id="20250117182828-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="position_id"
+                                 baseTableName="submission"
+                                 constraintName="fk_submission__position_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="position"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="grade_id"
+                                 baseTableName="submission"
+                                 constraintName="fk_submission__grade_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="grade"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="committee_name_id"
+                                 baseTableName="submission"
+                                 constraintName="fk_submission__committee_name_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="committee"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="submission"
+                                 constraintName="fk_submission__user_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="jhi_user"
+                                 />
+    </changeSet>
+</databaseChangeLog>
