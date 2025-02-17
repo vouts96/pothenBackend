@@ -1,5 +1,6 @@
 package com.mycompany.myapp.web.rest;
 
+import com.mycompany.myapp.domain.Submission;
 import com.mycompany.myapp.repository.SubmissionRepository;
 import com.mycompany.myapp.service.SubmissionService;
 import com.mycompany.myapp.service.dto.SubmissionDTO;
@@ -18,6 +19,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -77,6 +81,7 @@ public class SubmissionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SubmissionDTO> updateSubmission(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody SubmissionDTO submissionDTO
@@ -111,6 +116,7 @@ public class SubmissionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SubmissionDTO> partialUpdateSubmission(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody SubmissionDTO submissionDTO
@@ -143,17 +149,28 @@ public class SubmissionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of submissions in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<SubmissionDTO>> getAllSubmissions(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
-    ) {
+    public ResponseEntity<List<SubmissionDTO>> getAllSubmissions(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Submissions");
+
+        // Get the authentication details
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String login = authentication.getName();
+
+        // Check if the user has the ADMIN role
+        boolean isAdmin = authentication
+            .getAuthorities()
+            .stream()
+            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
         Page<SubmissionDTO> page;
-        if (eagerload) {
-            page = submissionService.findAllWithEagerRelationships(pageable);
-        } else {
+        if (isAdmin) {
+            // Admin can view all submissions
             page = submissionService.findAll(pageable);
+        } else {
+            // Regular users can only view their own submissions
+            page = submissionService.findAllByUser(pageable, login);
         }
+
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -165,6 +182,7 @@ public class SubmissionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the submissionDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SubmissionDTO> getSubmission(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Submission : {}", id);
         Optional<SubmissionDTO> submissionDTO = submissionService.findOne(id);
@@ -178,6 +196,7 @@ public class SubmissionResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteSubmission(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Submission : {}", id);
         submissionService.delete(id);

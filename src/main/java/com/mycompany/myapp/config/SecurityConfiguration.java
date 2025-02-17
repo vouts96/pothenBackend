@@ -61,8 +61,9 @@ public class SecurityConfiguration {
                         )
                     )
             )
-            .authorizeHttpRequests(authz ->
-                // prettier-ignore
+            .authorizeHttpRequests(
+                authz ->
+                    // prettier-ignore
                 authz
                     .requestMatchers(mvc.pattern("/index.html"), mvc.pattern("/*.js"), mvc.pattern("/*.txt"), mvc.pattern("/*.json"), mvc.pattern("/*.map"), mvc.pattern("/*.css")).permitAll()
                     .requestMatchers(mvc.pattern("/*.ico"), mvc.pattern("/*.png"), mvc.pattern("/*.svg"), mvc.pattern("/*.webapp")).permitAll()
@@ -84,6 +85,12 @@ public class SecurityConfiguration {
                     .requestMatchers(mvc.pattern("/management/info")).permitAll()
                     .requestMatchers(mvc.pattern("/management/prometheus")).permitAll()
                     .requestMatchers(mvc.pattern("/management/**")).hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/positions")).authenticated() // Allow GET /api/positions for users
+                    .requestMatchers(mvc.pattern("/api/positions/**")).hasAuthority(AuthoritiesConstants.ADMIN) // Restrict all other positions endpoints to admins
+                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/grades")).authenticated() // Allow GET /api/grades for users
+                    .requestMatchers(mvc.pattern("/api/grades/**")).hasAuthority(AuthoritiesConstants.ADMIN) // Restrict all other grades endpoints to admins
+                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/committees")).authenticated() // Allow GET /api/committees for users
+                    .requestMatchers(mvc.pattern("/api/committees/**")).hasAuthority(AuthoritiesConstants.ADMIN) // Restrict all other committees endpoints to admins
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(exceptions ->

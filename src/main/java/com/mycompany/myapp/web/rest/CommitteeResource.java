@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.ResponseUtil;
@@ -50,6 +51,7 @@ public class CommitteeResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<CommitteeDTO> createCommittee(@Valid @RequestBody CommitteeDTO committeeDTO) throws URISyntaxException {
         LOG.debug("REST request to save Committee : {}", committeeDTO);
         if (committeeDTO.getId() != null) {
@@ -72,6 +74,7 @@ public class CommitteeResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<CommitteeDTO> updateCommittee(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody CommitteeDTO committeeDTO
@@ -106,6 +109,7 @@ public class CommitteeResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<CommitteeDTO> partialUpdateCommittee(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody CommitteeDTO committeeDTO
@@ -148,6 +152,7 @@ public class CommitteeResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the committeeDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<CommitteeDTO> getCommittee(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Committee : {}", id);
         Optional<CommitteeDTO> committeeDTO = committeeService.findOne(id);
@@ -161,6 +166,7 @@ public class CommitteeResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteCommittee(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Committee : {}", id);
         committeeService.delete(id);

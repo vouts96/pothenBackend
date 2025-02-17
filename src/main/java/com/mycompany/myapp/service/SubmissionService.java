@@ -76,17 +76,17 @@ public class SubmissionService {
             .map(submissionMapper::toDto);
     }
 
-    /**
-     * Get all the submissions.
-     *
-     * @param pageable the pagination information.
-     * @return the list of entities.
-     */
-    @Transactional(readOnly = true)
-    public Page<SubmissionDTO> findAll(Pageable pageable) {
-        LOG.debug("Request to get all Submissions");
-        return submissionRepository.findAll(pageable).map(submissionMapper::toDto);
-    }
+    // /**
+    //  * Get all the submissions.
+    //  *
+    //  * @param pageable the pagination information.
+    //  * @return the list of entities.
+    //  */
+    // @Transactional(readOnly = true)
+    // public Page<SubmissionDTO> findAll(Pageable pageable) {
+    //     LOG.debug("Request to get all Submissions");
+    //     return submissionRepository.findAll(pageable).map(submissionMapper::toDto);
+    // }
 
     /**
      * Get all the submissions with eager load of many-to-many relationships.
@@ -117,5 +117,17 @@ public class SubmissionService {
     public void delete(Long id) {
         LOG.debug("Request to delete Submission : {}", id);
         submissionRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SubmissionDTO> findAll(Pageable pageable) {
+        LOG.debug("Request to get all Submissions");
+        return submissionRepository.findAll(pageable).map(submissionMapper::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SubmissionDTO> findAllByUser(Pageable pageable, String login) {
+        LOG.debug("Request to get all Submissions for user: {}", login);
+        return submissionRepository.findAllByUserLogin(pageable, login).map(submissionMapper::toDto);
     }
 }

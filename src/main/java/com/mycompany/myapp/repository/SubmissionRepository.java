@@ -44,4 +44,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
         "select submission from Submission submission left join fetch submission.position left join fetch submission.grade left join fetch submission.committeeName left join fetch submission.user where submission.id =:id"
     )
     Optional<Submission> findOneWithToOneRelationships(@Param("id") Long id);
+
+    @Query("select submission from Submission submission where submission.user.login = :login")
+    Page<Submission> findAllByUserLogin(Pageable pageable, @Param("login") String login);
 }
