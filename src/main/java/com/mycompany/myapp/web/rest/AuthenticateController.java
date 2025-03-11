@@ -6,10 +6,16 @@ import static com.mycompany.myapp.security.SecurityUtils.JWT_ALGORITHM;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mycompany.myapp.web.rest.vm.LoginVM;
 import jakarta.validation.Valid;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +35,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controller to authenticate users.
+ * Controller to authenticate users with both JWT and Taxisnet OAuth2.
  */
 @RestController
 @RequestMapping("/api")
@@ -46,6 +52,18 @@ public class AuthenticateController {
     private long tokenValidityInSecondsForRememberMe;
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+
+    @Value("${taxisnet.client-id}")
+    private String taxisnetClientId;
+
+    @Value("${taxisnet.client-secret}")
+    private String taxisnetClientSecret;
+
+    @Value("${taxisnet.token-uri}")
+    private String taxisnetTokenUri;
+
+    @Value("${taxisnet.user-info-uri}")
+    private String taxisnetUserInfoUri;
 
     public AuthenticateController(JwtEncoder jwtEncoder, AuthenticationManagerBuilder authenticationManagerBuilder) {
         this.jwtEncoder = jwtEncoder;
@@ -68,33 +86,121 @@ public class AuthenticateController {
     }
 
     /**
-     * {@code GET /authenticate} : check if the user is authenticated, and return its login.
+     * OAuth2 Authentication via Taxisnet.
      *
-     * @param principal the authentication principal.
-     * @return the login if the user is authenticated.
+     * @param code Authorization code from Taxisnet.
+     * @return JWT token.
      */
-    @GetMapping(value = "/authenticate", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String isAuthenticated(Principal principal) {
-        LOG.debug("REST request to check if the current user is authenticated");
-        return principal == null ? null : principal.getName();
+    @PostMapping("/authenticate-oauth2")
+    public ResponseEntity<JWTToken> authorizeWithOAuth2(@RequestParam String code) {
+        try {
+            // Exchange authorization code for access token
+            String accessToken = getAccessTokenFromTaxisnet(code);
+
+            // Retrieve user info from Taxisnet
+            Map<String, String> userInfo = getUserInfoFromTaxisnet(accessToken);
+            String username = userInfo.get("username");
+            String authorities = "ROLE_USER"; // Assign default role
+
+            // Generate JWT token
+            String jwt = createToken(username, authorities);
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setBearerAuth(jwt);
+
+            return new ResponseEntity<>(new JWTToken(jwt), httpHeaders, HttpStatus.OK);
+        } catch (Exception e) {
+            LOG.error("OAuth2 authentication failed", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 
+    /**
+     * Calls Taxisnet to exchange authorization code for access token.
+     */
+    private String getAccessTokenFromTaxisnet(String code) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+        String requestBody =
+            "client_id=" +
+            taxisnetClientId +
+            "&client_secret=" +
+            taxisnetClientSecret +
+            "&scope=read" +
+            "&code=" +
+            code +
+            "&grant_type=authorization_code";
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(taxisnetTokenUri))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+            .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        JSONObject jsonResponse = new JSONObject(response.body());
+        return jsonResponse.getString("access_token");
+    }
+
+    /**
+     * Calls Taxisnet to get user info.
+     */
+    private Map<String, String> getUserInfoFromTaxisnet(String accessToken) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(taxisnetUserInfoUri))
+            .header("Authorization", "Bearer " + accessToken)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        JSONObject jsonResponse = new JSONObject(response.body());
+
+        return Map.of(
+            "username",
+            jsonResponse.getString("username"),
+            "afm",
+            jsonResponse.getString("afm"),
+            "lastName",
+            jsonResponse.getString("ΕΠΩΝΥΜΟ"),
+            "firstName",
+            jsonResponse.getString("ΟΝΟΜΑ")
+        );
+    }
+
+    /**
+     * Creates JWT token from authentication.
+     */
     public String createToken(Authentication authentication, boolean rememberMe) {
         String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
 
         Instant now = Instant.now();
-        Instant validity;
-        if (rememberMe) {
-            validity = now.plus(this.tokenValidityInSecondsForRememberMe, ChronoUnit.SECONDS);
-        } else {
-            validity = now.plus(this.tokenValidityInSeconds, ChronoUnit.SECONDS);
-        }
+        Instant validity = rememberMe
+            ? now.plus(this.tokenValidityInSecondsForRememberMe, ChronoUnit.SECONDS)
+            : now.plus(this.tokenValidityInSeconds, ChronoUnit.SECONDS);
 
-        // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .issuedAt(now)
             .expiresAt(validity)
             .subject(authentication.getName())
+            .claim(AUTHORITIES_KEY, authorities)
+            .build();
+
+        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+    }
+
+    /**
+     * Creates JWT token directly from username and authorities.
+     */
+    public String createToken(String username, String authorities) {
+        Instant now = Instant.now();
+        Instant validity = now.plus(this.tokenValidityInSeconds, ChronoUnit.SECONDS);
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+            .issuedAt(now)
+            .expiresAt(validity)
+            .subject(username)
             .claim(AUTHORITIES_KEY, authorities)
             .build();
 

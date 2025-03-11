@@ -12,6 +12,12 @@
 # Full reference is available at:
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
+taxisnet:
+  client-id: TJP48Y31612
+  client-secret: pm!VC67#gn4
+  token-uri: https://test.gsis.gr/oauth2servergov/oauth/token
+  user-info-uri: https://test.gsis.gr/oauth2servergov/userinfo?format=json
+  redirect-uri: https://147.102.74.34
 
 logging:
   level:
