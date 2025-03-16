@@ -33,6 +33,8 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 /**
  * Controller to authenticate users with both JWT and Taxisnet OAuth2.
@@ -44,14 +46,14 @@ public class AuthenticateController {
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticateController.class);
 
     private final JwtEncoder jwtEncoder;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final WebClient webClient;
 
     @Value("${jhipster.security.authentication.jwt.token-validity-in-seconds:0}")
     private long tokenValidityInSeconds;
 
     @Value("${jhipster.security.authentication.jwt.token-validity-in-seconds-for-remember-me:0}")
     private long tokenValidityInSecondsForRememberMe;
-
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
     @Value("${taxisnet.client-id}")
     private String taxisnetClientId;
@@ -65,9 +67,14 @@ public class AuthenticateController {
     @Value("${taxisnet.user-info-uri}")
     private String taxisnetUserInfoUri;
 
-    public AuthenticateController(JwtEncoder jwtEncoder, AuthenticationManagerBuilder authenticationManagerBuilder) {
+    public AuthenticateController(
+        JwtEncoder jwtEncoder,
+        AuthenticationManagerBuilder authenticationManagerBuilder,
+        WebClient.Builder webClientBuilder
+    ) {
         this.jwtEncoder = jwtEncoder;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
+        this.webClient = webClientBuilder.build();
     }
 
     @PostMapping("/authenticate")
@@ -91,19 +98,21 @@ public class AuthenticateController {
      * @param code Authorization code from Taxisnet.
      * @return JWT token.
      */
-    @PostMapping("/authenticate-oauth2")
+    @GetMapping("/authenticate-oauth2")
     public ResponseEntity<JWTToken> authorizeWithOAuth2(@RequestParam String code) {
         try {
-            // Exchange authorization code for access token
+            // Step 1: Exchange authorization code for access token
             String accessToken = getAccessTokenFromTaxisnet(code);
+            System.out.println("TOOOOOOOOOOOOOOOKKKKKKKKKKKKKEEEEEEEEEEEENNNN");
+            System.out.println(accessToken);
 
-            // Retrieve user info from Taxisnet
-            Map<String, String> userInfo = getUserInfoFromTaxisnet(accessToken);
-            String username = userInfo.get("username");
-            String authorities = "ROLE_USER"; // Assign default role
+            // Step 2: Retrieve user info from Taxisnet
+            String userInfo = getUserInfoFromTaxisnet(accessToken);
+            System.out.println("uuuuuuuuuuuuuuuuuuuuusssssssssssssssssseeeeeeeeeeeeeeeeeeeeeeeeer");
+            System.out.println(userInfo);
 
-            // Generate JWT token
-            String jwt = createToken(username, authorities);
+            // Step 3: Generate JWT token
+            String jwt = createToken(userInfo, "ROLE_USER");
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.setBearerAuth(jwt);
 
@@ -117,8 +126,7 @@ public class AuthenticateController {
     /**
      * Calls Taxisnet to exchange authorization code for access token.
      */
-    private String getAccessTokenFromTaxisnet(String code) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
+    private String getAccessTokenFromTaxisnet(String code) {
         String requestBody =
             "client_id=" +
             taxisnetClientId +
@@ -129,43 +137,29 @@ public class AuthenticateController {
             code +
             "&grant_type=authorization_code";
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(taxisnetTokenUri))
+        return webClient
+            .post()
+            .uri(taxisnetTokenUri)
             .header("Content-Type", "application/x-www-form-urlencoded")
-            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-            .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        JSONObject jsonResponse = new JSONObject(response.body());
-        return jsonResponse.getString("access_token");
+            .bodyValue(requestBody)
+            .retrieve()
+            .bodyToMono(String.class)
+            .map(response -> new JSONObject(response).getString("access_token"))
+            .block(); // Blocking for simplicity
     }
 
     /**
      * Calls Taxisnet to get user info.
      */
-    private Map<String, String> getUserInfoFromTaxisnet(String accessToken) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
-
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(taxisnetUserInfoUri))
+    private String getUserInfoFromTaxisnet(String accessToken) {
+        return webClient
+            .get()
+            .uri(taxisnetUserInfoUri)
             .header("Authorization", "Bearer " + accessToken)
             .header("Accept", "application/json")
-            .GET()
-            .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        JSONObject jsonResponse = new JSONObject(response.body());
-
-        return Map.of(
-            "username",
-            jsonResponse.getString("username"),
-            "afm",
-            jsonResponse.getString("afm"),
-            "lastName",
-            jsonResponse.getString("ΕΠΩΝΥΜΟ"),
-            "firstName",
-            jsonResponse.getString("ΟΝΟΜΑ")
-        );
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
     }
 
     /**

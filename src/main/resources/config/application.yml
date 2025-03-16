@@ -16,6 +16,13 @@
 
 ---
 # Conditionally disable springdoc on missing api-docs profile
+taxisnet:
+  client-id: 'TJP48Y31612'
+  client-secret: 'pm!VC67#gn4'
+  token-uri: 'https://test.gsis.gr/oauth2servergov/oauth/token'
+  user-info-uri: 'https://test.gsis.gr/oauth2servergov/userinfo?format=json'
+  redirect-uri: 'https://147.102.74.34/'
+
 spring:
   config:
     activate:
@@ -192,7 +199,7 @@ jhipster:
     name: 'myApp'
   # By default CORS is disabled. Uncomment to enable.
   cors:
-    allowed-origins: 'https://your-vercel-app.vercel.app'
+    allowed-origins: 'http://localhost:4200'
     allowed-methods: 'GET, POST, PUT, DELETE, OPTIONS'
     allowed-headers: '*'
     exposed-headers: 'Authorization,Link,X-Total-Count'

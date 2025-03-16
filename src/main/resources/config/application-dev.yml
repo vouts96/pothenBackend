@@ -16,7 +16,7 @@ taxisnet:
   client-id: TJP48Y31612
   client-secret: pm!VC67#gn4
   token-uri: https://test.gsis.gr/oauth2servergov/oauth/token
-  user-info-uri: https://test.gsis.gr/oauth2servergov/userinfo?format=json
+  user-info-uri: https://test.gsis.gr/oauth2servergov/userinfo?format=xml
   redirect-uri: https://147.102.74.34
 
 logging:
