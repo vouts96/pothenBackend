@@ -4,6 +4,8 @@ import static com.mycompany.myapp.security.SecurityUtils.AUTHORITIES_KEY;
 import static com.mycompany.myapp.security.SecurityUtils.JWT_ALGORITHM;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mycompany.myapp.domain.User;
+import com.mycompany.myapp.service.UserService;
 import com.mycompany.myapp.web.rest.vm.LoginVM;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -48,6 +50,7 @@ public class AuthenticateController {
     private final JwtEncoder jwtEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final WebClient webClient;
+    private final UserService userService;
 
     @Value("${jhipster.security.authentication.jwt.token-validity-in-seconds:0}")
     private long tokenValidityInSeconds;
@@ -70,11 +73,13 @@ public class AuthenticateController {
     public AuthenticateController(
         JwtEncoder jwtEncoder,
         AuthenticationManagerBuilder authenticationManagerBuilder,
-        WebClient.Builder webClientBuilder
+        WebClient.Builder webClientBuilder,
+        UserService userService
     ) {
         this.jwtEncoder = jwtEncoder;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.webClient = webClientBuilder.build();
+        this.userService = userService;
     }
 
     @PostMapping("/authenticate")
@@ -103,16 +108,21 @@ public class AuthenticateController {
         try {
             // Step 1: Exchange authorization code for access token
             String accessToken = getAccessTokenFromTaxisnet(code);
-            System.out.println("TOOOOOOOOOOOOOOOKKKKKKKKKKKKKEEEEEEEEEEEENNNN");
-            System.out.println(accessToken);
+            LOG.info("Received OAuth2 Access Token: {}", accessToken);
 
-            // Step 2: Retrieve user info from Taxisnet
-            String userInfo = getUserInfoFromTaxisnet(accessToken);
-            System.out.println("uuuuuuuuuuuuuuuuuuuuusssssssssssssssssseeeeeeeeeeeeeeeeeeeeeeeeer");
-            System.out.println(userInfo);
+            // Step 2: Retrieve user info (XML Response) from Taxisnet
+            String userInfoXml = getUserInfoFromTaxisnet(accessToken);
+            LOG.info("User Info from Taxisnet: {}", userInfoXml);
 
-            // Step 3: Generate JWT token
-            String jwt = createToken(userInfo, "ROLE_USER");
+            // Step 3: Register user in the system if they don't exist
+            User registeredUser = userService.registerUserFromXml(userInfoXml);
+            if (registeredUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            // Step 4: Generate JWT token
+            String jwt = createToken(registeredUser.getLogin(), "ROLE_USER");
+
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.setBearerAuth(jwt);
 

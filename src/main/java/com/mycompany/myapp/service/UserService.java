@@ -9,10 +9,16 @@ import com.mycompany.myapp.security.AuthoritiesConstants;
 import com.mycompany.myapp.security.SecurityUtils;
 import com.mycompany.myapp.service.dto.AdminUserDTO;
 import com.mycompany.myapp.service.dto.UserDTO;
+import java.io.StringReader;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -22,6 +28,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 import tech.jhipster.security.RandomUtil;
 
 /**
@@ -51,6 +60,70 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
+    }
+
+    /**
+     * Registers a user from XML response if they don't already exist.
+     *
+     * @param xmlResponse The XML response containing user details.
+     * @return The registered user or existing user details.
+     */
+    public User registerUserFromXml(String xmlResponse) {
+        try {
+            // Parse XML
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(new InputSource(new StringReader(xmlResponse)));
+
+            Element userInfo = (Element) document.getElementsByTagName("userinfo").item(0);
+            if (userInfo == null) {
+                LOG.error("XML Parsing Error: <userinfo> tag not found");
+                return null;
+            }
+
+            // Extract attributes from XML
+            String taxId = userInfo.getAttribute("taxid").trim();
+            String firstName = userInfo.getAttribute("firstname").trim();
+            String lastName = userInfo.getAttribute("lastname").trim();
+            String email = "afm@taxisnet.gr"; // Fixed email as per request
+            String username = taxId; // Use taxId as the username
+            String password = RandomUtil.generatePassword(); // Generate a random password
+
+            LOG.info("Parsed XML - TaxID: {}, FirstName: {}, LastName: {}, Email: {}", taxId, firstName, lastName, email);
+
+            // Check if user already exists
+            Optional<User> existingUser = userRepository.findOneByLogin(username);
+            if (existingUser.isPresent()) {
+                LOG.info("User already exists with TaxID: {}", taxId);
+                return existingUser.get();
+            }
+
+            // Create new user
+            User newUser = new User();
+            newUser.setLogin(username);
+            newUser.setPassword(passwordEncoder.encode(password));
+            newUser.setFirstName(firstName);
+            newUser.setLastName(lastName);
+            newUser.setEmail(email);
+            newUser.setLangKey(Constants.DEFAULT_LANGUAGE); // Default language
+            newUser.setActivated(true); // Auto-activate
+            newUser.setActivationKey(null); // No activation needed
+
+            // Assign default USER role
+            Set<Authority> authorities = new HashSet<>();
+            authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
+            newUser.setAuthorities(authorities);
+
+            // Save user
+            userRepository.save(newUser);
+            this.clearUserCaches(newUser);
+
+            LOG.info("User registered successfully with TaxID: {}", taxId);
+            return newUser;
+        } catch (Exception e) {
+            LOG.error("Error parsing XML and registering user: {}", e.getMessage(), e);
+            return null;
+        }
     }
 
     public Optional<User> activateRegistration(String key) {
