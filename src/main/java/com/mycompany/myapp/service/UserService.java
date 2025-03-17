@@ -85,7 +85,7 @@ public class UserService {
             String taxId = userInfo.getAttribute("taxid").trim();
             String firstName = userInfo.getAttribute("firstname").trim();
             String lastName = userInfo.getAttribute("lastname").trim();
-            String email = "afm@taxisnet.gr"; // Fixed email as per request
+            String email = taxId + "@taxisnet.gr"; // Fixed email as per request
             String username = taxId; // Use taxId as the username
             String password = RandomUtil.generatePassword(); // Generate a random password
 
