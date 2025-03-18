@@ -38,6 +38,24 @@ entity Committee {
   name String required
 }
 
+entity SubmissionAudit {
+  afm String required pattern(/^[0-9]{9}$/) // Α.Φ.Μ.: 9-digit number
+  adt String required // Α.Δ.Τ - Α.Γ.Μ
+  lastName String required // Επώνυμο
+  firstName String required // Όνομα
+  fatherName String required // Πατρώνυμο
+  acquisitionDate LocalDate required // Ημ/νία Απόκτησης Ιδιότητας
+  lossDate LocalDate // Ημ/νία Απώλειας Ιδιότητας (optional)
+  organizationUnit String required // Οργανική Μονάδα
+  newOrganizationUnit String // Νέα Οργανική Μονάδα (optional)
+  protocolNumber String required // Αριθμός πρωτοκόλλου απόφασης
+  decisionDate LocalDate required // Ημ/νία Έκδοσης Απόφασης
+  previousSubmission Boolean required // Έχετε υποβάλει το προηγούμενο έτος (Yes/No)
+  modifiedDate Instant required // Timestamp of modification
+  modifiedBy String required // User who modified the submission
+  changeType String required // Type of change (CREATE, UPDATE, DELETE)
+}
+
 relationship ManyToOne {
   Submission{position(name)} to Position
   Submission{grade(name)} to Grade
@@ -45,8 +63,11 @@ relationship ManyToOne {
   Submission{user(login)} to User with builtInEntity
 }
 
+relationship ManyToOne {
+  SubmissionAudit{originalSubmission} to Submission
+}
+
 dto * with mapstruct
 
-paginate Submission with infinite-scroll
-
-service Submission with serviceClass
+paginate Submission, SubmissionAudit with infinite-scroll
+service Submission, SubmissionAudit with serviceClass

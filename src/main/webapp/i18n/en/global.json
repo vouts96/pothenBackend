@@ -12,7 +12,8 @@
         "submission": "Submission",
         "position": "Position",
         "grade": "Grade",
-        "committee": "Committee"
+        "committee": "Committee",
+        "submissionAudit": "Submission Audit"
       },
       "account": {
         "main": "Account",

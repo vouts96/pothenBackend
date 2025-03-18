@@ -26,6 +26,11 @@ const routes: Routes = [
     data: { pageTitle: 'myApp.committee.home.title' },
     loadChildren: () => import('./committee/committee.routes'),
   },
+  {
+    path: 'submission-audit',
+    data: { pageTitle: 'myApp.submissionAudit.home.title' },
+    loadChildren: () => import('./submission-audit/submission-audit.routes'),
+  },
   /* jhipster-needle-add-entity-route - JHipster will add entity modules routes here */
 ];
 

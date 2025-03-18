@@ -21,4 +21,9 @@ export const EntityNavbarItems: NavbarItem[] = [
     route: '/committee',
     translationKey: 'global.menu.entities.committee',
   },
+  {
+    name: 'SubmissionAudit',
+    route: '/submission-audit',
+    translationKey: 'global.menu.entities.submissionAudit',
+  },
 ];

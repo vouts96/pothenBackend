@@ -1,0 +1,356 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2
+        id="jhi-submission-audit-heading"
+        data-cy="SubmissionAuditCreateUpdateHeading"
+        jhiTranslate="myApp.submissionAudit.home.createOrEditLabel"
+      >
+        Create or edit a Submission Audit
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" for="field_id" jhiTranslate="myApp.submissionAudit.id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        @let afmRef = editForm.get('afm')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_afm" jhiTranslate="myApp.submissionAudit.afm">Afm</label>
+          <input type="text" class="form-control" name="afm" id="field_afm" data-cy="afm" formControlName="afm" />
+          @if (afmRef.invalid && (afmRef.dirty || afmRef.touched)) {
+            <div>
+              @if (editForm.get('afm')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+              @if (editForm.get('afm')?.errors?.pattern) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.pattern" [translateValues]="{ pattern: 'Afm' }"
+                  >This field should follow pattern for Afm.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        @let adtRef = editForm.get('adt')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_adt" jhiTranslate="myApp.submissionAudit.adt">Adt</label>
+          <input type="text" class="form-control" name="adt" id="field_adt" data-cy="adt" formControlName="adt" />
+          @if (adtRef.invalid && (adtRef.dirty || adtRef.touched)) {
+            <div>
+              @if (editForm.get('adt')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let lastNameRef = editForm.get('lastName')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_lastName" jhiTranslate="myApp.submissionAudit.lastName">Last Name</label>
+          <input type="text" class="form-control" name="lastName" id="field_lastName" data-cy="lastName" formControlName="lastName" />
+          @if (lastNameRef.invalid && (lastNameRef.dirty || lastNameRef.touched)) {
+            <div>
+              @if (editForm.get('lastName')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let firstNameRef = editForm.get('firstName')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_firstName" jhiTranslate="myApp.submissionAudit.firstName">First Name</label>
+          <input type="text" class="form-control" name="firstName" id="field_firstName" data-cy="firstName" formControlName="firstName" />
+          @if (firstNameRef.invalid && (firstNameRef.dirty || firstNameRef.touched)) {
+            <div>
+              @if (editForm.get('firstName')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let fatherNameRef = editForm.get('fatherName')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_fatherName" jhiTranslate="myApp.submissionAudit.fatherName">Father Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="fatherName"
+            id="field_fatherName"
+            data-cy="fatherName"
+            formControlName="fatherName"
+          />
+          @if (fatherNameRef.invalid && (fatherNameRef.dirty || fatherNameRef.touched)) {
+            <div>
+              @if (editForm.get('fatherName')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let acquisitionDateRef = editForm.get('acquisitionDate')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_acquisitionDate" jhiTranslate="myApp.submissionAudit.acquisitionDate"
+            >Acquisition Date</label
+          >
+          <div class="input-group">
+            <input
+              id="field_acquisitionDate"
+              data-cy="acquisitionDate"
+              type="text"
+              class="form-control"
+              name="acquisitionDate"
+              ngbDatepicker
+              #acquisitionDateDp="ngbDatepicker"
+              formControlName="acquisitionDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="acquisitionDateDp.toggle()">
+              <fa-icon icon="calendar-alt"></fa-icon>
+            </button>
+          </div>
+          @if (acquisitionDateRef.invalid && (acquisitionDateRef.dirty || acquisitionDateRef.touched)) {
+            <div>
+              @if (editForm.get('acquisitionDate')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_lossDate" jhiTranslate="myApp.submissionAudit.lossDate">Loss Date</label>
+          <div class="input-group">
+            <input
+              id="field_lossDate"
+              data-cy="lossDate"
+              type="text"
+              class="form-control"
+              name="lossDate"
+              ngbDatepicker
+              #lossDateDp="ngbDatepicker"
+              formControlName="lossDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="lossDateDp.toggle()"><fa-icon icon="calendar-alt"></fa-icon></button>
+          </div>
+        </div>
+
+        @let organizationUnitRef = editForm.get('organizationUnit')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_organizationUnit" jhiTranslate="myApp.submissionAudit.organizationUnit"
+            >Organization Unit</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            name="organizationUnit"
+            id="field_organizationUnit"
+            data-cy="organizationUnit"
+            formControlName="organizationUnit"
+          />
+          @if (organizationUnitRef.invalid && (organizationUnitRef.dirty || organizationUnitRef.touched)) {
+            <div>
+              @if (editForm.get('organizationUnit')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_newOrganizationUnit" jhiTranslate="myApp.submissionAudit.newOrganizationUnit"
+            >New Organization Unit</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            name="newOrganizationUnit"
+            id="field_newOrganizationUnit"
+            data-cy="newOrganizationUnit"
+            formControlName="newOrganizationUnit"
+          />
+        </div>
+
+        @let protocolNumberRef = editForm.get('protocolNumber')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_protocolNumber" jhiTranslate="myApp.submissionAudit.protocolNumber">Protocol Number</label>
+          <input
+            type="text"
+            class="form-control"
+            name="protocolNumber"
+            id="field_protocolNumber"
+            data-cy="protocolNumber"
+            formControlName="protocolNumber"
+          />
+          @if (protocolNumberRef.invalid && (protocolNumberRef.dirty || protocolNumberRef.touched)) {
+            <div>
+              @if (editForm.get('protocolNumber')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let decisionDateRef = editForm.get('decisionDate')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_decisionDate" jhiTranslate="myApp.submissionAudit.decisionDate">Decision Date</label>
+          <div class="input-group">
+            <input
+              id="field_decisionDate"
+              data-cy="decisionDate"
+              type="text"
+              class="form-control"
+              name="decisionDate"
+              ngbDatepicker
+              #decisionDateDp="ngbDatepicker"
+              formControlName="decisionDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="decisionDateDp.toggle()">
+              <fa-icon icon="calendar-alt"></fa-icon>
+            </button>
+          </div>
+          @if (decisionDateRef.invalid && (decisionDateRef.dirty || decisionDateRef.touched)) {
+            <div>
+              @if (editForm.get('decisionDate')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let previousSubmissionRef = editForm.get('previousSubmission')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_previousSubmission" jhiTranslate="myApp.submissionAudit.previousSubmission"
+            >Previous Submission</label
+          >
+          <input
+            type="checkbox"
+            class="form-check"
+            name="previousSubmission"
+            id="field_previousSubmission"
+            data-cy="previousSubmission"
+            formControlName="previousSubmission"
+          />
+          @if (previousSubmissionRef.invalid && (previousSubmissionRef.dirty || previousSubmissionRef.touched)) {
+            <div>
+              @if (editForm.get('previousSubmission')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let modifiedDateRef = editForm.get('modifiedDate')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_modifiedDate" jhiTranslate="myApp.submissionAudit.modifiedDate">Modified Date</label>
+          <div class="d-flex">
+            <input
+              id="field_modifiedDate"
+              data-cy="modifiedDate"
+              type="datetime-local"
+              class="form-control"
+              name="modifiedDate"
+              formControlName="modifiedDate"
+              placeholder="YYYY-MM-DD HH:mm"
+            />
+          </div>
+          @if (modifiedDateRef.invalid && (modifiedDateRef.dirty || modifiedDateRef.touched)) {
+            <div>
+              @if (editForm.get('modifiedDate')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+              <small
+                class="form-text text-danger"
+                [hidden]="!editForm.get('modifiedDate')?.errors?.datetimelocal"
+                jhiTranslate="entity.validation.datetimelocal"
+                >This field should be a date and time.</small
+              >
+            </div>
+          }
+        </div>
+
+        @let modifiedByRef = editForm.get('modifiedBy')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_modifiedBy" jhiTranslate="myApp.submissionAudit.modifiedBy">Modified By</label>
+          <input
+            type="text"
+            class="form-control"
+            name="modifiedBy"
+            id="field_modifiedBy"
+            data-cy="modifiedBy"
+            formControlName="modifiedBy"
+          />
+          @if (modifiedByRef.invalid && (modifiedByRef.dirty || modifiedByRef.touched)) {
+            <div>
+              @if (editForm.get('modifiedBy')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        @let changeTypeRef = editForm.get('changeType')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_changeType" jhiTranslate="myApp.submissionAudit.changeType">Change Type</label>
+          <input
+            type="text"
+            class="form-control"
+            name="changeType"
+            id="field_changeType"
+            data-cy="changeType"
+            formControlName="changeType"
+          />
+          @if (changeTypeRef.invalid && (changeTypeRef.dirty || changeTypeRef.touched)) {
+            <div>
+              @if (editForm.get('changeType')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_originalSubmission" jhiTranslate="myApp.submissionAudit.originalSubmission"
+            >Original Submission</label
+          >
+          <select
+            class="form-control"
+            id="field_originalSubmission"
+            data-cy="originalSubmission"
+            name="originalSubmission"
+            formControlName="originalSubmission"
+            [compareWith]="compareSubmission"
+          >
+            <option [ngValue]="null"></option>
+            @for (submissionOption of submissionsSharedCollection; track $index) {
+              <option [ngValue]="submissionOption">{{ submissionOption.id }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

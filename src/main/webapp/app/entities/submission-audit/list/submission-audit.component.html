@@ -1,0 +1,221 @@
+<div>
+  <h2 id="page-heading" data-cy="SubmissionAuditHeading">
+    <span jhiTranslate="myApp.submissionAudit.home.title">Submission Audits</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="myApp.submissionAudit.home.refreshListLabel">Refresh list</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-submission-audit"
+        [routerLink]="['/submission-audit/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="myApp.submissionAudit.home.createLabel">Create a new Submission Audit</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  @if (submissionAudits?.length === 0) {
+    <div class="alert alert-warning" id="no-result">
+      <span jhiTranslate="myApp.submissionAudit.home.notFound">No Submission Audits found</span>
+    </div>
+  }
+
+  @if (submissionAudits && submissionAudits.length > 0) {
+    <div class="table-responsive table-entities" id="entities">
+      <table class="table table-striped" aria-describedby="page-heading">
+        <thead>
+          <tr jhiSort [sortState]="sortState" (sortChange)="navigateToWithComponentValues($event)">
+            <th scope="col" jhiSortBy="id">
+              <div class="d-flex">
+                <span jhiTranslate="global.field.id">ID</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="afm">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.afm">Afm</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="adt">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.adt">Adt</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="lastName">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.lastName">Last Name</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="firstName">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.firstName">First Name</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="fatherName">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.fatherName">Father Name</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="acquisitionDate">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.acquisitionDate">Acquisition Date</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="lossDate">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.lossDate">Loss Date</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="organizationUnit">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.organizationUnit">Organization Unit</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="newOrganizationUnit">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.newOrganizationUnit">New Organization Unit</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="protocolNumber">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.protocolNumber">Protocol Number</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="decisionDate">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.decisionDate">Decision Date</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="previousSubmission">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.previousSubmission">Previous Submission</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="modifiedDate">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.modifiedDate">Modified Date</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="modifiedBy">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.modifiedBy">Modified By</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="changeType">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.changeType">Change Type</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="originalSubmission.id">
+              <div class="d-flex">
+                <span jhiTranslate="myApp.submissionAudit.originalSubmission">Original Submission</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody infinite-scroll (scrolled)="loadNextPage()" [infiniteScrollDisabled]="!hasMorePage()" [infiniteScrollDistance]="0">
+          @for (submissionAudit of submissionAudits; track trackId(submissionAudit)) {
+            <tr data-cy="entityTable">
+              <td>
+                <a [routerLink]="['/submission-audit', submissionAudit.id, 'view']">{{ submissionAudit.id }}</a>
+              </td>
+              <td>{{ submissionAudit.afm }}</td>
+              <td>{{ submissionAudit.adt }}</td>
+              <td>{{ submissionAudit.lastName }}</td>
+              <td>{{ submissionAudit.firstName }}</td>
+              <td>{{ submissionAudit.fatherName }}</td>
+              <td>{{ submissionAudit.acquisitionDate | formatMediumDate }}</td>
+              <td>{{ submissionAudit.lossDate | formatMediumDate }}</td>
+              <td>{{ submissionAudit.organizationUnit }}</td>
+              <td>{{ submissionAudit.newOrganizationUnit }}</td>
+              <td>{{ submissionAudit.protocolNumber }}</td>
+              <td>{{ submissionAudit.decisionDate | formatMediumDate }}</td>
+              <td>{{ submissionAudit.previousSubmission }}</td>
+              <td>{{ submissionAudit.modifiedDate | formatMediumDatetime }}</td>
+              <td>{{ submissionAudit.modifiedBy }}</td>
+              <td>{{ submissionAudit.changeType }}</td>
+              <td>
+                @if (submissionAudit.originalSubmission) {
+                  <div>
+                    <a [routerLink]="['/submission', submissionAudit.originalSubmission.id, 'view']">{{
+                      submissionAudit.originalSubmission.id
+                    }}</a>
+                  </div>
+                }
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a
+                    [routerLink]="['/submission-audit', submissionAudit.id, 'view']"
+                    class="btn btn-info btn-sm"
+                    data-cy="entityDetailsButton"
+                  >
+                    <fa-icon icon="eye"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+                  </a>
+
+                  <a
+                    [routerLink]="['/submission-audit', submissionAudit.id, 'edit']"
+                    class="btn btn-primary btn-sm"
+                    data-cy="entityEditButton"
+                  >
+                    <fa-icon icon="pencil-alt"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                  </a>
+
+                  <button type="submit" (click)="delete(submissionAudit)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+                    <fa-icon icon="times"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

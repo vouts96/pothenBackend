@@ -1,0 +1,100 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (submissionAudit(); as submissionAuditRef) {
+      <div>
+        <h2 data-cy="submissionAuditDetailsHeading"><span jhiTranslate="myApp.submissionAudit.detail.title">Submission Audit</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.afm">Afm</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.afm }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.adt">Adt</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.adt }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.lastName">Last Name</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.lastName }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.firstName">First Name</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.firstName }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.fatherName">Father Name</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.fatherName }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.acquisitionDate">Acquisition Date</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.acquisitionDate | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.lossDate">Loss Date</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.lossDate | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.organizationUnit">Organization Unit</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.organizationUnit }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.newOrganizationUnit">New Organization Unit</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.newOrganizationUnit }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.protocolNumber">Protocol Number</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.protocolNumber }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.decisionDate">Decision Date</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.decisionDate | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.previousSubmission">Previous Submission</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.previousSubmission }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.modifiedDate">Modified Date</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.modifiedDate | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.modifiedBy">Modified By</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.modifiedBy }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.changeType">Change Type</span></dt>
+          <dd>
+            <span>{{ submissionAuditRef.changeType }}</span>
+          </dd>
+          <dt><span jhiTranslate="myApp.submissionAudit.originalSubmission">Original Submission</span></dt>
+          <dd>
+            @if (submissionAudit()!.originalSubmission) {
+              <div>
+                <a [routerLink]="['/submission', submissionAudit()!.originalSubmission?.id, 'view']">{{
+                  submissionAuditRef.originalSubmission?.id
+                }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/submission-audit', submissionAuditRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

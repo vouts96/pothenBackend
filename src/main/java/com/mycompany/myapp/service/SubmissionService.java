@@ -1,9 +1,13 @@
 package com.mycompany.myapp.service;
 
 import com.mycompany.myapp.domain.Submission;
+import com.mycompany.myapp.domain.SubmissionAudit;
+import com.mycompany.myapp.repository.SubmissionAuditRepository;
 import com.mycompany.myapp.repository.SubmissionRepository;
+import com.mycompany.myapp.security.SecurityUtils;
 import com.mycompany.myapp.service.dto.SubmissionDTO;
 import com.mycompany.myapp.service.mapper.SubmissionMapper;
+import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +29,16 @@ public class SubmissionService {
 
     private final SubmissionMapper submissionMapper;
 
-    public SubmissionService(SubmissionRepository submissionRepository, SubmissionMapper submissionMapper) {
+    private final SubmissionAuditRepository submissionAuditRepository;
+
+    public SubmissionService(
+        SubmissionRepository submissionRepository,
+        SubmissionMapper submissionMapper,
+        SubmissionAuditRepository submissionAuditRepository
+    ) {
         this.submissionRepository = submissionRepository;
         this.submissionMapper = submissionMapper;
+        this.submissionAuditRepository = submissionAuditRepository;
     }
 
     /**
@@ -51,8 +62,36 @@ public class SubmissionService {
      */
     public SubmissionDTO update(SubmissionDTO submissionDTO) {
         LOG.debug("Request to update Submission : {}", submissionDTO);
+
+        // Fetch the existing Submission from the database
+        Optional<Submission> existingSubmission = submissionRepository.findById(submissionDTO.getId());
+
         Submission submission = submissionMapper.toEntity(submissionDTO);
         submission = submissionRepository.save(submission);
+
+        // If an existing record was found, create an audit entry
+        existingSubmission.ifPresent(oldSubmission -> {
+            SubmissionAudit audit = new SubmissionAudit();
+            audit.setAfm(oldSubmission.getAfm());
+            audit.setAdt(oldSubmission.getAdt());
+            audit.setLastName(oldSubmission.getLastName());
+            audit.setFirstName(oldSubmission.getFirstName());
+            audit.setFatherName(oldSubmission.getFatherName());
+            audit.setAcquisitionDate(oldSubmission.getAcquisitionDate());
+            audit.setLossDate(oldSubmission.getLossDate());
+            audit.setOrganizationUnit(oldSubmission.getOrganizationUnit());
+            audit.setNewOrganizationUnit(oldSubmission.getNewOrganizationUnit());
+            audit.setProtocolNumber(oldSubmission.getProtocolNumber());
+            audit.setDecisionDate(oldSubmission.getDecisionDate());
+            audit.setPreviousSubmission(oldSubmission.getPreviousSubmission());
+            audit.setModifiedDate(Instant.now());
+            audit.setModifiedBy(SecurityUtils.getCurrentUserLogin().orElse("unknown"));
+            audit.setChangeType("UPDATE");
+            audit.setOriginalSubmission(oldSubmission);
+
+            submissionAuditRepository.save(audit);
+        });
+
         return submissionMapper.toDto(submission);
     }
 
@@ -68,8 +107,29 @@ public class SubmissionService {
         return submissionRepository
             .findById(submissionDTO.getId())
             .map(existingSubmission -> {
-                submissionMapper.partialUpdate(existingSubmission, submissionDTO);
+                // Store the previous version in SubmissionAudit
+                SubmissionAudit audit = new SubmissionAudit();
+                audit.setAfm(existingSubmission.getAfm());
+                audit.setAdt(existingSubmission.getAdt());
+                audit.setLastName(existingSubmission.getLastName());
+                audit.setFirstName(existingSubmission.getFirstName());
+                audit.setFatherName(existingSubmission.getFatherName());
+                audit.setAcquisitionDate(existingSubmission.getAcquisitionDate());
+                audit.setLossDate(existingSubmission.getLossDate());
+                audit.setOrganizationUnit(existingSubmission.getOrganizationUnit());
+                audit.setNewOrganizationUnit(existingSubmission.getNewOrganizationUnit());
+                audit.setProtocolNumber(existingSubmission.getProtocolNumber());
+                audit.setDecisionDate(existingSubmission.getDecisionDate());
+                audit.setPreviousSubmission(existingSubmission.getPreviousSubmission());
+                audit.setModifiedDate(Instant.now());
+                audit.setModifiedBy(SecurityUtils.getCurrentUserLogin().orElse("unknown"));
+                audit.setChangeType("PARTIAL_UPDATE");
+                audit.setOriginalSubmission(existingSubmission);
 
+                submissionAuditRepository.save(audit);
+
+                // Apply the partial update
+                submissionMapper.partialUpdate(existingSubmission, submissionDTO);
                 return existingSubmission;
             })
             .map(submissionRepository::save)

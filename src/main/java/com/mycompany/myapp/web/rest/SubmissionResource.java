@@ -81,7 +81,6 @@ public class SubmissionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SubmissionDTO> updateSubmission(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody SubmissionDTO submissionDTO
