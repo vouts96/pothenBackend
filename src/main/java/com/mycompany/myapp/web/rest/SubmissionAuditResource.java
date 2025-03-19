@@ -179,4 +179,24 @@ public class SubmissionAuditResource {
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }
+
+    /**
+     * {@code GET  /submission-audits/by-submission/:submissionId} : get all submissionAudit records related to an original submission.
+     *
+     * @param submissionId the original submission ID.
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of submissionAudit records in body.
+     */
+    @GetMapping("/by-submission/{submissionId}")
+    public ResponseEntity<List<SubmissionAuditDTO>> getAuditsByOriginalSubmission(
+        @PathVariable("submissionId") Long submissionId,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug("REST request to get SubmissionAudit records for Submission ID : {}", submissionId);
+
+        Page<SubmissionAuditDTO> page = submissionAuditService.findByOriginalSubmissionId(submissionId, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
 }

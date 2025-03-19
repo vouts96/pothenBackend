@@ -109,4 +109,11 @@ public class SubmissionAuditService {
         LOG.debug("Request to delete SubmissionAudit : {}", id);
         submissionAuditRepository.deleteById(id);
     }
+
+    @Transactional(readOnly = true)
+    public Page<SubmissionAuditDTO> findByOriginalSubmissionId(Long submissionId, Pageable pageable) {
+        LOG.debug("Request to get SubmissionAudit records for Submission ID : {}", submissionId);
+
+        return submissionAuditRepository.findByOriginalSubmissionId(submissionId, pageable).map(submissionAuditMapper::toDto);
+    }
 }
