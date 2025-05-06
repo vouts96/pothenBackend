@@ -12,11 +12,14 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.json.JSONObject;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,6 +133,93 @@ public class AuthenticateController {
         } catch (Exception e) {
             LOG.error("OAuth2 authentication failed", e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @GetMapping("/authenticate-keycloak")
+    public ResponseEntity<JWTToken> authorizeWithKeycloak(@RequestParam String code) {
+        try {
+            System.out.println("▶ Received code: " + code);
+
+            String idToken = getIdTokenFromKeycloak(code);
+            System.out.println("Received id_token");
+
+            String[] parts = idToken.split("\\.");
+            if (parts.length != 3) {
+                System.err.println("Invalid JWT format");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            }
+
+            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+            System.out.println("🔍 Decoded JWT payload: " + payloadJson);
+
+            JSONObject payload = new JSONObject(payloadJson);
+            String username = payload.optString("preferred_username", null);
+            String email = payload.optString("email", null);
+            String name = payload.optString("name", null);
+
+            System.out.println("👤 Extracted: username=" + username + ", email=" + email + ", name=" + name);
+
+            if (username == null) {
+                System.err.println("Missing 'preferred_username' in token");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            User user = userService.registerUserFromKeycloak(username, email, name);
+            if (user == null) {
+                System.err.println("Failed to register user: " + username);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            String jwt = createToken(user.getLogin(), "ROLE_USER");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(jwt);
+            return new ResponseEntity<>(new JWTToken(jwt), headers, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("❌ Exception in /authenticate-keycloak");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    private String getIdTokenFromKeycloak(String code) {
+        try {
+            String requestBody =
+                "client_id=public-client" + "&grant_type=authorization_code" + "&redirect_uri=https://147.102.74.34" + "&code=" + code;
+
+            System.out.println("Sending token request to Keycloak...");
+            System.out.println("client_id=public-client");
+            System.out.println("grant_type=authorization_code");
+            System.out.println("redirect_uri=https://147.102.74.34/");
+            System.out.println("code=" + code);
+
+            String tokenResponse = webClient
+                .post()
+                .uri("https://gpu.dslab.ece.ntua.gr:8443/realms/billys/protocol/openid-connect/token")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .bodyValue(requestBody)
+                .retrieve()
+                .onStatus(
+                    status -> status.isError(),
+                    response ->
+                        response
+                            .bodyToMono(String.class)
+                            .flatMap(body -> {
+                                System.err.println("Keycloak token endpoint returned error: " + body);
+                                return Mono.error(new RuntimeException("Keycloak error: " + body));
+                            })
+                )
+                .bodyToMono(String.class)
+                .block();
+
+            System.out.println("Raw token response: " + tokenResponse);
+
+            JSONObject json = new JSONObject(tokenResponse);
+            return json.getString("id_token");
+        } catch (Exception e) {
+            System.err.println("Exception while calling Keycloak token endpoint:");
+            e.printStackTrace();
+            throw new RuntimeException("Failed to get id_token from Keycloak", e);
         }
     }
 

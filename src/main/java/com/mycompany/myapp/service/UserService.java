@@ -126,6 +126,50 @@ public class UserService {
         }
     }
 
+    public User registerUserFromKeycloak(String username, String email, String fullName) {
+        try {
+            // Parse full name into first/last (basic split)
+            String[] nameParts = fullName != null ? fullName.trim().split(" ", 2) : new String[] { username, "" };
+            String firstName = nameParts[0];
+            String lastName = nameParts.length > 1 ? nameParts[1] : "";
+
+            LOG.info("Keycloak - Parsed User: username={}, firstName={}, lastName={}, email={}", username, firstName, lastName, email);
+
+            // Check if user already exists
+            Optional<User> existingUser = userRepository.findOneByLogin(username);
+            if (existingUser.isPresent()) {
+                LOG.info("User already exists with username: {}", username);
+                return existingUser.get();
+            }
+
+            // Create new user
+            User newUser = new User();
+            newUser.setLogin(username);
+            newUser.setPassword(passwordEncoder.encode(RandomUtil.generatePassword()));
+            newUser.setFirstName(firstName);
+            newUser.setLastName(lastName);
+            newUser.setEmail(email != null ? email : username + "@keycloak.local");
+            newUser.setLangKey(Constants.DEFAULT_LANGUAGE);
+            newUser.setActivated(true);
+            newUser.setActivationKey(null);
+
+            // Assign ROLE_USER authority
+            Set<Authority> authorities = new HashSet<>();
+            authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
+            newUser.setAuthorities(authorities);
+
+            // Save and clear caches
+            userRepository.save(newUser);
+            this.clearUserCaches(newUser);
+
+            LOG.info("User registered successfully from Keycloak: {}", username);
+            return newUser;
+        } catch (Exception e) {
+            LOG.error("Error registering user from Keycloak: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
     public Optional<User> activateRegistration(String key) {
         LOG.debug("Activating user for activation key {}", key);
         return userRepository
